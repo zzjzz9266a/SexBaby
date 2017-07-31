@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Baby extends Model
 {
+    protected $fillable = ['member_id', 'title', 'connection', 'project', 'price', 'security', 'judge', 'detail', 'images', 'age', 'public_date', 'province', 'area'];
+
     static function list($province)
     {
       return DB::table($province)->select('id', 'member_id', 'title', 'price', 'public_date')->orderBy('public_date', 'desc')->paginate(20);

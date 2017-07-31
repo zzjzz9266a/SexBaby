@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\ClearFlows::class,
+        Commands\Spider::class,
     ];
 
     /**
