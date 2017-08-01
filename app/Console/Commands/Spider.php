@@ -40,14 +40,17 @@ class Spider extends Command
      * @return mixed
      */
     public function handle()
-    {
-        $page = $this->argument('page');
-        for ($i=1; $i <= $page; $i++) { 
-            $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=4&areaid=23'; 
-            echo $url."\n";
-            $this->listPage($url);
+    {   
+        $province_count = 31;
+        for ($province_id=1; $province_id <= $province_count; $province_id++) { 
+            $page = $this->argument('page');
+            for ($i=1; $i <= $page; $i++) { 
+                $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=4&areaid='.$province_id; 
+                echo $url."\n";
+                $this->listPage($url);
+            }
         }
-        echo "$page";
+        
     }
 
     function listPage($pageUrl)
@@ -56,62 +59,86 @@ class Spider extends Command
 
         $titles = $document->find('//div[@class="main dq1"]/ul[@class="list"]/li[@class="dq7 wd4"]/a', Query::TYPE_XPATH);
         foreach ($titles as $title) {
-        $baseUrl = "http://www.weike27.com";
+            $baseUrl = "http://www.weike27.com";
 
-        $href = $title->getAttribute('href');
-        if (strpos($href, "show.asp") !== false) {
-            echo $title->text()."\n";
-            // echo $href."\n";
-            echo ">>>>>>>>>>\n";
+            $href = $title->getAttribute('href');
+            if (strpos($href, "show.asp") !== false) {
+                echo $title->text()."\n";
+                echo ">>>>>>>>>>\n";
 
-            $detailPage = new Document($baseUrl.$href, true);
+                $detailPage = new Document($baseUrl.$href, true);
 
-            $member_id = substr($href, strpos($href, "id=")+3, 5);
-            $baby = Baby::create(['member_id' => $member_id]);
-            $baby->fill(['title' => $title->text()]);
+                $member_id = substr($href, strpos($href, "id=")+3, 5);
 
-            $phone = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"联系方式")]');
-            $connection = preg_replace('#\s+#','',$phone[0]->text());
-            $baby->fill(['connection' => $connection]);
+                $baby = new Baby();
+                $baby->member_id = $member_id;
+                $baby->title = $title->text();
 
-            $date = $detailPage->xpath('//div[@class="guize1"]/font[contains(text(), "发布时间")]');
-            $date = substr($date[0]->text(), strpos($date[0]->text(), "发布时间")+15);
-            $baby->fill(['public_date' => $date]);
+                $phone = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"联系方式")]');
+                $connection = preg_replace('#\s+#','',$phone[0]->text());
+                $baby->connection = $connection;
 
-            $area = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"所属地区")]');
-            $area = preg_replace('#\s+#','',$area[0]->text());
-            //todo 继续填数据
+                $date = $detailPage->xpath('//div[@class="guize1"]/font[contains(text(), "发布时间")]');
+                $date = substr($date[0]->text(), strpos($date[0]->text(), "发布时间")+15);
+                $baby->public_date = $date;
 
-            $age = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"小姐年龄")]');
-            $age = preg_replace('#\s+#','',$age[0]->text());
+                $longArea = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"所属地区")]');
+                $longArea = preg_replace('#\s+#','',$longArea[0]->text());
+                $start = strlen("所属地区：");
+                $index = strpos($longArea, " - ");
+                //省份
+                $province = substr($longArea, $start, $index-$start);
+                $baby->province = $province;
+                //地区
+                $area = substr($longArea, $index+strlen(" - "));
+                $baby->area = $area;
 
-            $project = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"服务项目")]');
-            $project = preg_replace('#\s+#','',$project[0]->text());
+                $address = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"详细地址")]');
+                $address = preg_replace('#\s+#','',$address[0]->text());
+                $baby->address = $address;
 
-            $price = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"价格一览")]');
-            $price = preg_replace('#\s+#','',$price[0]->text());
+                $age = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"小姐年龄")]');
+                $age = preg_replace('#\s+#','',$age[0]->text());
+                $baby->age = $age;
 
-            $security = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"安全评估")]');
-            $security = preg_replace('#\s+#','',$security[0]->text());
+                $project = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"服务项目")]');
+                $project = preg_replace('#\s+#','',$project[0]->text());
+                $baby->project = $project;
 
-            $judge = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"综合评价")]');
-            $judge = preg_replace('#\s+#','',$judge[0]->text());
+                $price = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"价格一览")]');
+                $price = preg_replace('#\s+#','',$price[0]->text());
+                $baby->price = $price;
 
-            $detail = $detailPage->xpath('//div[@class="guize2"]/li[@class="neirong3"]');
-            $detail = preg_replace('#\s+#','',$detail[0]->text());
+                $security = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"安全评估")]');
+                $security = preg_replace('#\s+#','',$security[0]->text());
+                $baby->security = $security;
 
-            $images = $detailPage->xpath('//div[@class="guize2"]/div/a/img');
-            $array = [];
-            foreach ($images as $image) {
-                $array[] = $baseUrl.$image->getAttribute('src');
+                $judge = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"综合评价")]');
+                $judge = preg_replace('#\s+#','',$judge[0]->text());
+                $baby->judge = $judge;
+
+                $detail = $detailPage->xpath('//div[@class="guize2"]/li[@class="neirong3"]');
+                $detail = preg_replace('#^\s*||\s*$#', '', $detail[0]->text());
+                $baby->detail = $detail;
+
+                $images = $detailPage->xpath('//div[@class="guize2"]/div/a/img');
+                $array = [];
+                foreach ($images as $image) {
+                    $array[] = $baseUrl.$image->getAttribute('src');
+                }
+                $images = json_encode($array);
+                $baby->images = $images;
+
+                if ($this->checkNotExist($member_id)->isEmpty()) {
+                    $baby->save();
+                }
             }
-            $images = json_encode($array);
-
-            // if (!checkExist($member_id)) {
-            //   update($member_id, $title->text(), $connection, $date, $area, $age, $project, $price, $security, $judge, $detail, $images);
-            // }
         }
     }
-}
+
+    function checkNotExist($member_id)
+    {
+        return Baby::where('member_id', $member_id)->get();
+    }
 
 }

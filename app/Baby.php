@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Baby extends Model
 {
-    protected $fillable = ['member_id', 'title', 'connection', 'project', 'price', 'security', 'judge', 'detail', 'images', 'age', 'public_date', 'province', 'area'];
+    protected $fillable = ['member_id', 'title', 'connection', 'project', 'price', 'security', 'judge', 'detail', 'images', 'age', 'public_date', 'province', 'area', 'adress'];
 
     static function list($province)
     {
