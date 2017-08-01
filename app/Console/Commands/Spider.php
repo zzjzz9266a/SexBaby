@@ -66,9 +66,13 @@ class Spider extends Command
                 echo $title->text()."\n";
                 echo ">>>>>>>>>>\n";
 
-                $detailPage = new Document($baseUrl.$href, true);
-
                 $member_id = substr($href, strpos($href, "id=")+3, 5);
+                //去除重复数据
+                if (!$this->checkNotExist($member_id)) {
+                    continue;
+                }
+                
+                $detailPage = new Document($baseUrl.$href, true);
 
                 $baby = new Baby();
                 $baby->member_id = $member_id;
@@ -129,8 +133,11 @@ class Spider extends Command
                 $images = json_encode($array);
                 $baby->images = $images;
 
-                if ($this->checkNotExist($member_id)->isEmpty()) {
+                try {
                     $baby->save();
+                } catch (Exception $e) {
+                    echo $e;
+                    continue;
                 }
             }
         }
@@ -138,7 +145,7 @@ class Spider extends Command
 
     function checkNotExist($member_id)
     {
-        return Baby::where('member_id', $member_id)->get();
+        return Baby::where('member_id', $member_id)->get()->isEmpty();
     }
 
 }
