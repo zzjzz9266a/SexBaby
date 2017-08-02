@@ -40,24 +40,23 @@ class Detail extends Command
      */
     public function handle()
     {   
-        $totalCount = 0;
         $successCount = 0;
-        $babies = Baby::all();
-        foreach ($babies as $baby) {
-            if (str_contains($baby->connection, '查看内容')) {
-                $totalCount += 1;
-                echo $baby->member_id."-----".$baby->title."\n";
-                $result = $this->updateSingle($baby, false);
-                if (!$result) {
-                    $result = $this->updateSingle($baby, true);
-                }
-                echo $result ? "更新成功"."\n" : "更新失败"."\n";
-                if ($result) {
-                    $successCount += 1;
-                }
+        $babies = Baby::where('valid', false)->orderBy('public_date', 'desc')->get();
+        foreach ($babies as $index => $baby) {
+            $this->info($baby->title.'('.$index.'/'.count($babies).')');
+            $result = $this->updateSingle($baby, false);
+            if (!$result) {
+                $result = $this->updateSingle($baby, true);
             }
+            if ($result) {
+                $this->info($baby->member_id."：更新成功");
+                $successCount += 1;
+            }else{
+                $this->error($baby->member_id."：更新失败");
+            }
+            echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
         }
-        echo "本次共有".$totalCount."条数据，成功更新".$successCount;
+        echo "本次共有".count($babies)."条数据，成功更新".$successCount;
     }
 
     public function updateSingle(Baby $baby, $hasHeader)
@@ -69,14 +68,18 @@ class Detail extends Command
             $detailPage = new Document($baseUrl."show.asp?id=".$baby->member_id, true, 'GBK', 'html');//, $this->header());
         }
         if ($detailPage->getResponseCode() != 200) {
-            echo "请求失败，状态码：".$detailPage->getResponseCode()."\n";
+            $this->error("请求失败，状态码：".$detailPage->getResponseCode());
             return false;
         }
 
         $phone = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"联系方式")]');
         if ($phone) {
             $connection = preg_replace('#\s+#','',$phone[0]->text());
+            echo "-----\n";
+            echo $connection."\n";
+            echo "-----\n";
             $baby->connection = $connection;
+            $baby->valid = !str_contains($connection, '查看'); 
         }else{
             return false;
         }
@@ -156,8 +159,7 @@ class Detail extends Command
             echo $e;
         }
         //获取联系方式即为成功
-        $result = !str_contains($connection, '查看内容');
-        return $result;
+        return !str_contains($connection, '查看');
     }
 
     public function header()
@@ -168,7 +170,8 @@ class Detail extends Command
         $header[] = 'Accept-Language:zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4';
         $header[] = 'Connection:keep-alive';
         // $header[] = 'Cookie:ASPSESSIONIDSQRSDBAS=LLAGADAAHFBFDKEPMMENIIKK; ASPSESSIONIDQQTRBDBS=IJJPPPMDLHDDMGDHOBMNPFDD; ASPSESSIONIDQQTRCABT=POCLOMJDPOCCMPJHDELAFNAK; ASPSESSIONIDQQTRDBBS=LEDLOMJDAPPCFKFAPBFOBNOJ; ASPSESSIONIDQSQTBAAT=GFMFBGDAKNHKLKCGKKHFBCBN; ASPSESSIONIDQSTSCAAT=PPGHCJGAHHFBMDLCNOPNECMN; usercookies%5F873983=dayarticlenum=0&daysoftnum=0&userip=121%2E69%2E48%2E156; NewAspUsers=RegDateTime=2017%2D07%2D27+00%3A19%3A45&UserToday=0%2C0%2C0%2C0%2C0%2C0&userlastip=121%2E69%2E48%2E156&UserGroup=%C6%D5%CD%A8%BB%E1%D4%B1&usermail=my%40email%2Ecom&UserLogin=22&UserGrade=1&password=4c9ea2b7ef321612&UserClass=0&username=zzjzz9266a&nickname=zzjzz9266a&usercookies=0&userid=873983&LastTime=2017%2D8%2D2+10%3A25%3A05&LastTimeIP=121%2E69%2E48%2E156&LastTimeDate=2017%2D8%2D2+10%3A25%3A05';
-        $header[] = 'Cookie:ASPSESSIONIDSQRSDBAS=LLAGADAAHFBFDKEPMMENIIKK; ASPSESSIONIDQQTRBDBS=IJJPPPMDLHDDMGDHOBMNPFDD; ASPSESSIONIDQQTRCABT=POCLOMJDPOCCMPJHDELAFNAK; ASPSESSIONIDQQTRDBBS=LEDLOMJDAPPCFKFAPBFOBNOJ; ASPSESSIONIDQSQTBAAT=GFMFBGDAKNHKLKCGKKHFBCBN; ASPSESSIONIDQSTSCAAT=PPGHCJGAHHFBMDLCNOPNECMN; usercookies%5F873983=dayarticlenum=0&daysoftnum=0&userip=121%2E69%2E48%2E156; NewAspUsers=RegDateTime=2017%2D07%2D27+00%3A19%3A45&UserToday=0%2C0%2C0%2C0%2C0%2C0&userlastip=121%2E69%2E48%2E156&UserGroup=%C6%D5%CD%A8%BB%E1%D4%B1&usermail=my%40email%2Ecom&UserLogin=22&UserGrade=1&password=4c9ea2b7ef321612&UserClass=0&username=zzjzz9266a&nickname=zzjzz9266a&usercookies=0&userid=873983&LastTime=2017%2D8%2D2+10%3A25%3A05&LastTimeIP=121%2E69%2E48%2E156&LastTimeDate=2017%2D8%2D2+10%3A25%3A05; ASPSESSIONIDSSRSAAAS=PHKNDMJAAPNALCHOEFCBFHIJ';
+        // $header[] = 'Cookie:ASPSESSIONIDSQRSDBAS=LLAGADAAHFBFDKEPMMENIIKK; ASPSESSIONIDQQTRBDBS=IJJPPPMDLHDDMGDHOBMNPFDD; ASPSESSIONIDQQTRCABT=POCLOMJDPOCCMPJHDELAFNAK; ASPSESSIONIDQQTRDBBS=LEDLOMJDAPPCFKFAPBFOBNOJ; ASPSESSIONIDQSQTBAAT=GFMFBGDAKNHKLKCGKKHFBCBN; ASPSESSIONIDQSTSCAAT=PPGHCJGAHHFBMDLCNOPNECMN; usercookies%5F873983=dayarticlenum=0&daysoftnum=0&userip=121%2E69%2E48%2E156; NewAspUsers=RegDateTime=2017%2D07%2D27+00%3A19%3A45&UserToday=0%2C0%2C0%2C0%2C0%2C0&userlastip=121%2E69%2E48%2E156&UserGroup=%C6%D5%CD%A8%BB%E1%D4%B1&usermail=my%40email%2Ecom&UserLogin=22&UserGrade=1&password=4c9ea2b7ef321612&UserClass=0&username=zzjzz9266a&nickname=zzjzz9266a&usercookies=0&userid=873983&LastTime=2017%2D8%2D2+10%3A25%3A05&LastTimeIP=121%2E69%2E48%2E156&LastTimeDate=2017%2D8%2D2+10%3A25%3A05; ASPSESSIONIDSSRSAAAS=PHKNDMJAAPNALCHOEFCBFHIJ';
+        $header[] = 'Cookie:ASPSESSIONIDSQRSDBAS=KOBMADAADLGPDJPJCIEMPDHG; ASPSESSIONIDQSQTBAAT=MPCKBGDAMFJPAEAFADPEBIJH; ASPSESSIONIDQQTRBDBS=OANEAANDPLIBEOKAAEOCMNMJ; usercookies%5F873983=dayarticlenum=0&daysoftnum=0&userip=121%2E69%2E48%2E156; ASPSESSIONIDQSTSCAAT=NIGHCJGALNDCLHMEPDBEIAHE; NewAspUsers=RegDateTime=2017%2D07%2D27+00%3A19%3A45&UserToday=0%2C0%2C0%2C0%2C0%2C0&userlastip=47%2E88%2E11%2E132&UserGroup=%C6%D5%CD%A8%BB%E1%D4%B1&usermail=my%40email%2Ecom&UserLogin=23&UserGrade=1&password=4c9ea2b7ef321612&UserClass=0&username=zzjzz9266a&nickname=zzjzz9266a&usercookies=0&userid=873983&LastTime=2017%2D8%2D2+11%3A55%3A05&LastTimeIP=121%2E69%2E48%2E156&LastTimeDate=2017%2D8%2D2+11%3A55%3A05; ASPSESSIONIDSSRSAAAS=FEMPDMJAIKGHDOPFEAECNEKA';
         $header[] = 'Host:www.weike27.com';
         $header[] = 'User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36';
         return $header;
