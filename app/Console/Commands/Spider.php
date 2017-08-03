@@ -40,8 +40,23 @@ class Spider extends Command
      */
     public function handle()
     {   
-        $province_count = 31;
-        for ($province_id=1; $province_id <= $province_count; $province_id++) { 
+        // for ($i = 0; $i < 100; $i += 5) {
+        //   $bar = str_repeat("#", $i/10);
+        //   echo "$i% $bar \r";
+        //   sleep(1);
+        // }
+        // echo "\n";
+        $array = ['所有', '北京', '上海', '重庆', '天津', '山东', '河北', '山西', '内蒙古', '辽宁', '黑龙江', '吉林', '江苏', '浙江', '福建', '河南', '湖北', '安徽', '湖南', '江西', '广东', '广西', '四川', '云南', '贵州', '陕西', '甘肃', '新疆', '宁夏', '青海', '西藏', '海南'];
+        foreach ($array as $index => $province) {
+            $this->info('> '.$index.'.'.$province);
+        }
+        $province_id = $this->ask('which province will you select?');
+        $this->listProvince($province_id);
+    }
+
+    public function listProvince($province_id)
+    {
+        if ($province_id != 0) {
             for ($i=1; $i <= 100; $i++) { 
                 $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=&areaid='.$province_id; 
                 echo $url."\n";
@@ -49,8 +64,17 @@ class Spider extends Command
                     break;
                 }
             }
+        }else{
+            for ($id=1; $id <= 31; $id++) { 
+                for ($i=1; $i <= 100; $i++) { 
+                    $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=&areaid='.$id; 
+                    echo $url."\n";
+                    if ($this->listPage($url, $i)){
+                        break;
+                    }
+                }
+            }
         }
-        
     }
 
     function listPage($pageUrl, $page)

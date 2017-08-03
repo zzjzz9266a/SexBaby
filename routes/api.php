@@ -20,13 +20,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('list', function (Request $request) {
-  return Baby::list($request->get('province'));
+ 	return Baby::list($request->get('province'));
 });
 Route::post('detail/{id}', function ($id, Request $request)
 {
-  return Baby::detail($id, $request->get('province'));
+	return Baby::detail($id, $request->get('province'));
 });
 Route::post('province', function ()
 {
-  return DB::table('provinces')->orderBy('province_id', 'asc')->get();
+	return DB::table('provinces')->orderBy('province_id', 'asc')->get();
 });
