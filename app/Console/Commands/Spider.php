@@ -137,7 +137,7 @@ class Spider extends Command
         $index = strpos($longArea, " - ");
         //省份
         $province = substr($longArea, $start, $index-$start);
-        $baby->province = $province;
+        $baby->province = preg_replace('#省|市|自治区#', '', $province);
         //地区
         $area = substr($longArea, $index+strlen(" - "));
         $baby->area = $area;

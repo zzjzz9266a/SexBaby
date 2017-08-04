@@ -24,9 +24,12 @@ Route::post('list', function (Request $request) {
 });
 Route::post('detail/{id}', function ($id, Request $request)
 {
-	return Baby::detail($id, $request->get('province'));
+	return Baby::detail($id);
 });
 Route::post('province', function ()
 {
-	return DB::table('provinces')->orderBy('province_id', 'asc')->get();
+	return DB::table('babies')->select('province')->distinct()->get()->map(function ($item)
+	{
+		return $item->province;
+	});
 });
