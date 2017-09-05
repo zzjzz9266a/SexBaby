@@ -10,18 +10,54 @@ class Baby extends Model
 
     static function list($province)
     {
-      if ($province) {
-        $babies = Baby::where('valid', true)->where('province', $province)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
-      }else{
-        $babies = Baby::where('valid', true)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
-      }
-      return $babies;
+		if ($province) {
+			$babies = Baby::where('valid', true)->where('province', $province)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
+		}else{
+			$babies = Baby::where('valid', true)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
+		}
+		foreach ($babies as $baby) {
+			$baby->images = json_decode($baby->images);
+		}
+		return $babies;
     }
 
     static function detail($id)
     { 
-      $baby = Baby::find($id);
-      $baby->images = json_decode($baby->images);
-      return $baby;
+    	$baby = Baby::find($id);
+    	$baby->images = json_decode($baby->images);
+    	return $baby;
+    }
+
+    static function collection($ids)
+    {
+    	$ids = json_decode($ids);
+    	$babies = Baby::where('valid', true)->whereIn('id', $ids)->orderBy('public_date', 'desc')->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->paginate(20);
+    	foreach ($babies as $baby) {
+			$baby->images = json_decode($baby->images);
+    	}
+    	return $babies;
+    }
+
+    static function search($province, $keyword)
+    {
+    	$babies = Baby::where('valid', true)
+    	->where('province', $province)
+    	->where(function ($query) use ($keyword)
+    	{
+    		$query->where('title', 'like', "%$keyword%")
+    			->orWhere('connection', 'like', "%$keyword%")
+		    	->orWhere('project', 'like', "%$keyword%")
+		    	->orWhere('price', 'like', "%$keyword%")
+		    	->orWhere('judge', 'like', "%$keyword%")
+		    	->orWhere('area', 'like', "%$keyword%")
+		    	->orWhere('address', 'like', "%$keyword%");
+    	})
+    	->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')
+    	->orderBy('public_date', 'desc')
+    	->paginate(20);
+    	foreach ($babies as $baby) {
+			$baby->images = json_decode($baby->images);
+    	}
+    	return $babies;
     }
 }

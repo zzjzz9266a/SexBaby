@@ -33,3 +33,15 @@ Route::post('province', function ()
 		return $item->province;
 	});
 });
+Route::post('search', function (Request $request)
+{
+  $province = $request->get('province');
+  $keyword = $request->get('keyword');
+  // return $content;
+  return Baby::search($province, $keyword);
+});
+Route::post('collection', function (Request $request)
+{
+  $ids = $request->get('ids');
+  return Baby::collection($ids);
+});
