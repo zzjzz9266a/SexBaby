@@ -11,7 +11,12 @@ class Baby extends Model
     static function list($province)
     {
 		if ($province) {
-			$babies = Baby::where('valid', true)->where('province', $province)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
+			$babies = Baby::where('valid', true)
+            ->where('province', $province)
+            ->whereNotNull('images')->where('images', '<>', '[]')
+            ->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')
+            ->orderBy('public_date', 'desc')
+            ->paginate(20);
 		}else{
 			$babies = Baby::where('valid', true)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->orderBy('public_date', 'desc')->paginate(20);
 		}
@@ -31,11 +36,14 @@ class Baby extends Model
     static function collection($ids)
     {
     	$ids = json_decode($ids);
-    	$babies = Baby::where('valid', true)->whereIn('id', $ids)->orderBy('public_date', 'desc')->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->paginate(20);
-    	foreach ($babies as $baby) {
+    	// $babies = Baby::where('valid', true)->whereIn('id', $ids)->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->paginate(20);
+        $babies = array();
+    	foreach ($ids as $id) {
+            $baby = Baby::select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')->find($id);
 			$baby->images = json_decode($baby->images);
+            $babies[] = $baby;
     	}
-    	return $babies;
+    	return ['data' => $babies];
     }
 
     static function search($province, $keyword)

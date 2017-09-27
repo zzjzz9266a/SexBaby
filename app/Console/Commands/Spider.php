@@ -58,7 +58,7 @@ class Spider extends Command
     {
         if ($province_id != 0) {
             for ($i=1; $i <= 100; $i++) { 
-                $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=&areaid='.$province_id; 
+                $url = 'http://www.weike004.com/class.asp?page='.$i.'&typeid=&areaid='.$province_id; 
                 echo $url."\n";
                 if ($this->listPage($url, $i)){
                     break;
@@ -67,7 +67,7 @@ class Spider extends Command
         }else{
             for ($id=1; $id <= 31; $id++) { 
                 for ($i=1; $i <= 100; $i++) { 
-                    $url = 'http://www.weike27.com/class.asp?page='.$i.'&typeid=&areaid='.$id; 
+                    $url = 'http://www.weike004.com/class.asp?page='.$i.'&typeid=&areaid='.$id; 
                     echo $url."\n";
                     if ($this->listPage($url, $i)){
                         break;
@@ -113,7 +113,7 @@ class Spider extends Command
 
     function loadSinglePage($title, $href)
     {
-        $baseUrl = "http://www.weike27.com";
+        $baseUrl = "http://www.weike004.com";
         $member_id = substr($href, strpos($href, "id=")+3, 5);
 
         $detailPage = new Document($baseUrl.$href, true, 'GBK', 'html', $this->header());
