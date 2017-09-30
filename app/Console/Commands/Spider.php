@@ -103,8 +103,12 @@ class Spider extends Command
 
                 //去除重复数据
                 if ($this->checkNotExist($member_id)) {
-                    $this->loadSinglePage($title->text(), $href);
-		    sleep(1);
+                    try {
+                        $this->loadSinglePage($title->text(), $href);
+                    } catch (Exception $e) {
+                        echo $e;
+                    }
+                    sleep(1);
                 }
             }
         }
@@ -117,15 +121,18 @@ class Spider extends Command
         $member_id = substr($href, strpos($href, "id=")+3, 5);
 
         $detailPage = new Document($baseUrl.$href, true, 'GBK', 'html', $this->header());
-        $detailPage = new Document($baseUrl.$href, true, 'GBK');
-        echo $detailPage->text();
-        sleep(10);
+        // $detailPage = new Document($baseUrl.$href, true, 'GBK');
+        // echo $detailPage->text();
+        sleep(1);
 
         $baby = new Baby();
         $baby->member_id = $member_id;
         $baby->title = $title;
 
         $phone = $detailPage->xpath('//div[@class="guize2"]/li[contains(text(),"联系方式")]');
+        if (!$phone) {
+            return;
+        }
         $connection = preg_replace('#\s+#','',$phone[0]->text());
         $baby->connection = $connection;
         $baby->valid = !str_contains($connection, '查看'); 
@@ -206,7 +213,7 @@ class Spider extends Command
         $header[] = 'Accept-Language:zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4';
         $header[] = 'Connection:keep-alive';
         $header[] = 'Cookie:ASPSESSIONIDSQRSDBAS=KOBMADAADLGPDJPJCIEMPDHG; ASPSESSIONIDQSQTBAAT=MPCKBGDAMFJPAEAFADPEBIJH; ASPSESSIONIDQQTRBDBS=OANEAANDPLIBEOKAAEOCMNMJ; usercookies%5F873983=dayarticlenum=0&daysoftnum=0&userip=121%2E69%2E48%2E156; ASPSESSIONIDQSTSCAAT=NIGHCJGALNDCLHMEPDBEIAHE; NewAspUsers=RegDateTime=2017%2D07%2D27+00%3A19%3A45&UserToday=0%2C0%2C0%2C0%2C0%2C0&userlastip=47%2E88%2E11%2E132&UserGroup=%C6%D5%CD%A8%BB%E1%D4%B1&usermail=my%40email%2Ecom&UserLogin=23&UserGrade=1&password=4c9ea2b7ef321612&UserClass=0&username=zzjzz9266a&nickname=zzjzz9266a&usercookies=0&userid=873983&LastTime=2017%2D8%2D2+11%3A55%3A05&LastTimeIP=121%2E69%2E48%2E156&LastTimeDate=2017%2D8%2D2+11%3A55%3A05; ASPSESSIONIDSSRSAAAS=FEMPDMJAIKGHDOPFEAECNEKA';
-        $header[] = 'Host:www.weike27.com';
+        $header[] = 'Host:www.weike004.com';
         $header[] = 'User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36';
         return $header;
     }

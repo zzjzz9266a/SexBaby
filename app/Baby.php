@@ -13,7 +13,7 @@ class Baby extends Model
 		if ($province) {
 			$babies = Baby::where('valid', true)
             ->where('province', $province)
-            ->whereNotNull('images')->where('images', '<>', '[]')
+            // ->whereNotNull('images')->where('images', '<>', '[]')
             ->select('id', 'member_id', 'title', 'price', 'public_date', 'images', 'area')
             ->orderBy('public_date', 'desc')
             ->paginate(20);
